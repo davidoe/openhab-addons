@@ -126,7 +126,7 @@ public class GoveeHygrometerHandler extends ConnectedBluetoothHandler {
                     disconnect();
                     updateStatus(ThingStatus.ONLINE);
                 }
-            } catch (RuntimeException ex) {
+            } catch (Exception ex) {
                 logger.warn("unable to refresh", ex);
             }
         }, 0, config.refreshInterval, TimeUnit.SECONDS);
@@ -135,7 +135,7 @@ public class GoveeHygrometerHandler extends ConnectedBluetoothHandler {
                 try {
                     GoveeMessage message = new GoveeMessage((byte) 0xAA, (byte) 1, null);
                     writeCharacteristic(SERVICE_UUID, KEEP_ALIVE_CHAR_UUID, message.getPayload(), false);
-                } catch (RuntimeException ex) {
+                } catch (Exception ex) {
                     logger.warn("unable to send keep alive", ex);
                 }
             }
@@ -198,6 +198,7 @@ public class GoveeHygrometerHandler extends ConnectedBluetoothHandler {
                 th = th.getCause();
             }
             if (th instanceof RuntimeException) {
+                logger.warn("Failed to initialize device", th);
                 updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
                         "Failed to initialize device: " + th.getMessage());
                 retFuture.completeExceptionally(th);
@@ -256,7 +257,7 @@ public class GoveeHygrometerHandler extends ConnectedBluetoothHandler {
 
     private void updateTemperatureAndHumidity(@Nullable TemHumDTO result, @Nullable Throwable th) {
         if (th != null) {
-            logger.debug("Failed to get temperature/humidity: {}", th.getMessage());
+            logger.debug("Failed to get temperature/humidity", th);
         }
         if (result == null) {
             return;
